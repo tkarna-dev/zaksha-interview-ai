@@ -2,13 +2,18 @@ import OpenAI from 'openai';
 import { InterviewAnalysis, LLMTranscriptChunk } from '../types';
 
 export class LLMService {
-  private openai: OpenAI;
+  private openai: OpenAI | null = null;
   private conversationHistory: Map<string, LLMTranscriptChunk[]> = new Map();
 
   constructor() {
-    this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (apiKey && apiKey !== 'sk-your-openai-api-key-here') {
+      this.openai = new OpenAI({
+        apiKey: apiKey,
+      });
+    } else {
+      console.warn('OpenAI API key not configured. LLM features will use fallback analysis.');
+    }
   }
 
   async analyzeInterview(
@@ -20,6 +25,12 @@ export class LLMService {
     try {
       // Store conversation history
       this.conversationHistory.set(sessionId, transcript);
+
+      // If OpenAI is not available, use fallback analysis
+      if (!this.openai) {
+        console.log('OpenAI not available, using fallback analysis');
+        return this.getFallbackAnalysis(fraudScore);
+      }
 
       const systemPrompt = `You are an AI assistant helping interviewers detect suspicious behavior during technical interviews. 
 
@@ -87,6 +98,16 @@ Provide your analysis in the specified JSON format.`;
     difficulty: 'easy' | 'medium' | 'hard' = 'medium'
   ): Promise<string[]> {
     try {
+      // If OpenAI is not available, return fallback questions
+      if (!this.openai) {
+        console.log('OpenAI not available, using fallback questions');
+        return [
+          `Can you explain how ${topic} works in a real-world scenario?`,
+          `What are the main challenges when working with ${topic}?`,
+          `How would you optimize ${topic} for better performance?`
+        ];
+      }
+
       const systemPrompt = `Generate 3 follow-up technical interview questions about ${topic} at ${difficulty} difficulty level. 
       Make them specific, practical, and designed to test deep understanding rather than memorization.`;
 
@@ -163,6 +184,13 @@ Provide your analysis in the specified JSON format.`;
   // Health check for LLM service
   async healthCheck(): Promise<{ status: string; model: string }> {
     try {
+      if (!this.openai) {
+        return {
+          status: 'fallback',
+          model: 'fallback-analysis'
+        };
+      }
+
       const completion = await this.openai.chat.completions.create({
         model: process.env.LLM_MODEL || "gpt-4",
         messages: [{ role: "user", content: "Hello" }],

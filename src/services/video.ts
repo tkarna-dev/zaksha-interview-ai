@@ -115,7 +115,7 @@ export class VideoService {
   }
 
   // Get display media (screen share)
-  async getDisplayMedia(constraints: DisplayMediaStreamConstraints): Promise<MediaStream> {
+  async getDisplayMedia(constraints: MediaStreamConstraints): Promise<MediaStream> {
     try {
       const stream = await navigator.mediaDevices.getDisplayMedia(constraints);
       return stream;
