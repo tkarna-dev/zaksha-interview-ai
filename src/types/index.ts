@@ -16,6 +16,7 @@ export interface FraudScore {
 }
 
 export interface TranscriptChunk {
+  id?: string;
   sessionId: string;
   seq: number;
   text: string;
@@ -25,6 +26,7 @@ export interface TranscriptChunk {
 }
 
 export interface ScreenEvent {
+  id?: string;
   sessionId: string;
   t: number;
   type: 'TAB_BLUR' | 'TAB_FOCUS' | 'PASTE' | 'URL_CHANGE' | 'COPY' | 'WINDOW_SWITCH';
@@ -39,6 +41,7 @@ export interface KeystrokeEvent {
 }
 
 export interface CompileRunEvent {
+  id?: string;
   sessionId: string;
   t: number;
   action: 'compile' | 'run' | 'test';
