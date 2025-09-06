@@ -1,12 +1,16 @@
 import express from 'express';
 import { LLMService } from '../services/llm';
 import { ApiResponse } from '../types';
+import { authenticateToken, requirePermission } from '../middleware/auth';
 
 const router = express.Router();
 const llmService = new LLMService();
 
 // Analyze interview conversation
-router.post('/analyze', async (req, res) => {
+router.post('/analyze', 
+  authenticateToken,
+  requirePermission('view_ai_analysis'),
+  async (req, res) => {
   try {
     const { sessionId, transcript, fraudScore, additionalContext } = req.body;
 
@@ -38,7 +42,10 @@ router.post('/analyze', async (req, res) => {
 });
 
 // Generate follow-up questions
-router.post('/questions', async (req, res) => {
+router.post('/questions', 
+  authenticateToken,
+  requirePermission('view_ai_analysis'),
+  async (req, res) => {
   try {
     const { sessionId, topic, difficulty } = req.body;
 

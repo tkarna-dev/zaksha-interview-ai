@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import { 
   FraudScore, 
   FraudRiskLevel, 
@@ -27,7 +27,7 @@ export class FraudDetectionService {
       telemetry: boolean;
     };
   }): Promise<{ sessionId: string }> {
-    const sessionId = `session_${Date.now()}_${uuidv4().substring(0, 8)}`;
+    const sessionId = `session_${Date.now()}_${randomUUID().substring(0, 8)}`;
     
     const session: SessionData = {
       id: sessionId,
@@ -66,7 +66,7 @@ export class FraudDetectionService {
     const chunks = this.transcriptChunks.get(data.sessionId) || [];
     chunks.push({
       ...data,
-      id: uuidv4(),
+      id: randomUUID(),
     });
     this.transcriptChunks.set(data.sessionId, chunks);
 
@@ -80,7 +80,7 @@ export class FraudDetectionService {
     const events = this.screenEvents.get(data.sessionId) || [];
     events.push({
       ...data,
-      id: uuidv4(),
+      id: randomUUID(),
     });
     this.screenEvents.set(data.sessionId, events);
 
@@ -94,7 +94,7 @@ export class FraudDetectionService {
     const events = this.compileEvents.get(data.sessionId) || [];
     events.push({
       ...data,
-      id: uuidv4(),
+      id: randomUUID(),
     });
     this.compileEvents.set(data.sessionId, events);
 

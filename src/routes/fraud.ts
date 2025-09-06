@@ -1,12 +1,17 @@
 import express from 'express';
 import { FraudDetectionService } from '../services/fraudDetection';
 import { ApiResponse } from '../types';
+import { authenticateToken, requireRole, requirePermission } from '../middleware/auth';
 
 const router = express.Router();
 const fraudService = new FraudDetectionService();
 
 // Start interview session
-router.post('/start', async (req, res) => {
+router.post('/start', 
+  authenticateToken,
+  requireRole(['company_admin', 'company_member', 'verifier', 'admin']),
+  requirePermission('start_interviews'),
+  async (req, res) => {
   try {
     const { candidateId, companyId, role, consent } = req.body;
 
@@ -155,7 +160,10 @@ router.post('/compile', async (req, res) => {
 });
 
 // Get latest fraud score
-router.get('/score/:sessionId', async (req, res) => {
+router.get('/score/:sessionId', 
+  authenticateToken,
+  requirePermission('view_fraud_scores'),
+  async (req, res) => {
   try {
     const { sessionId } = req.params;
     const score = await fraudService.getLatestScore(sessionId);
@@ -174,7 +182,10 @@ router.get('/score/:sessionId', async (req, res) => {
 });
 
 // Get comprehensive report
-router.get('/report/:sessionId', async (req, res) => {
+router.get('/report/:sessionId', 
+  authenticateToken,
+  requirePermission('view_fraud_scores'),
+  async (req, res) => {
   try {
     const { sessionId } = req.params;
     const report = await fraudService.getReport(sessionId);
@@ -219,7 +230,11 @@ router.get('/session/:sessionId', async (req, res) => {
 });
 
 // Get all sessions (admin endpoint)
-router.get('/sessions', async (req, res) => {
+router.get('/sessions', 
+  authenticateToken,
+  requireRole(['admin']),
+  requirePermission('manage_system'),
+  async (req, res) => {
   try {
     const sessions = fraudService.getAllSessions();
 
