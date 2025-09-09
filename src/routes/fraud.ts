@@ -251,4 +251,87 @@ router.get('/sessions',
   }
 });
 
+// Get fraud analytics and trends (admin endpoint)
+router.get('/analytics', 
+  authenticateToken,
+  requireRole(['admin', 'verifier']),
+  requirePermission('view_fraud_analytics'),
+  async (req, res) => {
+  try {
+    const analytics = await fraudService.getFraudAnalytics();
+
+    res.json({
+      success: true,
+      data: analytics
+    } as ApiResponse);
+  } catch (error) {
+    console.error('Error getting fraud analytics:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get fraud analytics'
+    } as ApiResponse);
+  }
+});
+
+// Submit keystroke event for advanced analysis
+router.post('/keystroke', async (req, res) => {
+  try {
+    const { sessionId, t, key, action, keyCode, modifiers } = req.body;
+
+    if (!sessionId || t === undefined || !key || !action) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: sessionId, t, key, action'
+      } as ApiResponse);
+    }
+
+    const result = await fraudService.ingestKeystrokeEvent({
+      sessionId,
+      t,
+      key,
+      action,
+      keyCode,
+      modifiers
+    });
+
+    res.json({
+      success: true,
+      data: result
+    } as ApiResponse);
+  } catch (error) {
+    console.error('Error ingesting keystroke event:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to ingest keystroke event'
+    } as ApiResponse);
+  }
+});
+
+// Submit code for stylometry analysis
+router.post('/code', async (req, res) => {
+  try {
+    const { sessionId, code, language } = req.body;
+
+    if (!sessionId || !code) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: sessionId, code'
+      } as ApiResponse);
+    }
+
+    const result = await fraudService.analyzeCode(sessionId, code, language);
+
+    res.json({
+      success: true,
+      data: result
+    } as ApiResponse);
+  } catch (error) {
+    console.error('Error analyzing code:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to analyze code'
+    } as ApiResponse);
+  }
+});
+
 export default router;

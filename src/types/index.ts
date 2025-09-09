@@ -29,7 +29,7 @@ export interface ScreenEvent {
   id?: string;
   sessionId: string;
   t: number;
-  type: 'TAB_BLUR' | 'TAB_FOCUS' | 'PASTE' | 'URL_CHANGE' | 'COPY' | 'WINDOW_SWITCH';
+  type: 'TAB_BLUR' | 'TAB_FOCUS' | 'PASTE' | 'URL_CHANGE' | 'COPY' | 'WINDOW_SWITCH' | 'KEYSTROKE_BATCH' | 'MOUSE_ANOMALY' | 'SCREEN_SHARE' | 'APPLICATION_SWITCH';
   meta?: Record<string, any>;
 }
 
@@ -38,6 +38,41 @@ export interface KeystrokeEvent {
   t: number;
   key: string;
   action: 'down' | 'up';
+  keyCode?: number;
+  modifiers?: {
+    ctrl: boolean;
+    alt: boolean;
+    shift: boolean;
+    meta: boolean;
+  };
+}
+
+export interface KeystrokeDigraph {
+  sessionId: string;
+  key1: string;
+  key2: string;
+  latency: number; // Time between key1 release and key2 press
+  timestamp: number;
+}
+
+export interface KeystrokeTrigraph {
+  sessionId: string;
+  key1: string;
+  key2: string;
+  key3: string;
+  latency1: number; // Time between key1 release and key2 press
+  latency2: number; // Time between key2 release and key3 press
+  timestamp: number;
+}
+
+export interface TypingProfile {
+  sessionId: string;
+  averageSpeed: number; // Characters per minute
+  digraphLatencies: Map<string, number>; // Key pair -> average latency
+  trigraphLatencies: Map<string, number>; // Key triple -> average latency
+  keyHoldDurations: Map<string, number>; // Key -> average hold time
+  pauseDistribution: Array<number>; // Array of pause durations
+  variance: number; // Variance of inter-keystroke intervals
 }
 
 export interface CompileRunEvent {
@@ -55,6 +90,27 @@ export interface InterviewAnalysis {
   suggestions: string[];
   riskFactors: string[];
   nextQuestions: string[];
+}
+
+// Code Stylometry Types
+export interface CodeStylometryFeatures {
+  sessionId: string;
+  lineCount: number;
+  characterCount: number;
+  hasTernaryOperators: boolean;
+  hasDirectReturns: boolean;
+  hasDuplicateExpressions: boolean;
+  averageLineLength: number;
+  commentRatio: number;
+  complexityScore: number;
+  aiGeneratedProbability: number; // From AST-based models
+  perplexityScore: number; // From language model perplexity
+  structuralPatterns: {
+    functionCount: number;
+    classCount: number;
+    importCount: number;
+    variableNamingPattern: string; // camelCase, snake_case, etc.
+  };
 }
 
 export interface LLMTranscriptChunk {
