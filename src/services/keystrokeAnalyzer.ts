@@ -54,20 +54,21 @@ export class KeystrokeAnalyzer {
 
   // Analyze trigraph latencies (three consecutive keys)
   private analyzeTrigraphs(sessionId: string, events: KeystrokeEvent[]): void {
-    if (events.length < 3) return;
+    if (events.length < 4) return;
 
     const trigraphs = this.trigraphs.get(sessionId) || [];
     
-    for (let i = 0; i < events.length - 2; i++) {
+    for (let i = 0; i < events.length - 3; i++) {
       const first = events[i];
       const second = events[i + 1];
       const third = events[i + 2];
+      const fourth = events[i + 3];
 
       // Look for key release -> key press -> key release -> key press pattern
       if (first.action === 'up' && second.action === 'down' && 
-          second.action === 'up' && third.action === 'down') {
+          third.action === 'up' && fourth.action === 'down') {
         const latency1 = second.t - first.t;
-        const latency2 = third.t - second.t;
+        const latency2 = fourth.t - third.t;
         
         // Only record reasonable latencies
         if (latency1 >= 10 && latency1 <= 2000 && latency2 >= 10 && latency2 <= 2000) {
@@ -75,10 +76,10 @@ export class KeystrokeAnalyzer {
             sessionId,
             key1: first.key,
             key2: second.key,
-            key3: third.key,
+            key3: fourth.key,
             latency1,
             latency2,
-            timestamp: third.t
+            timestamp: fourth.t
           });
         }
       }
